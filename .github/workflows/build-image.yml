@@ -1,0 +1,21 @@
+name: Build GOST Pi 5 image
+on: [push, workflow_dispatch]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unpack project
+        run: unzip -q gost-os.zip && rsync -a gost-os/ ./
+      - name: Install build tools
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq wget xz-utils rsync
+      - name: Build the Raspberry Pi 5 image
+        run: sudo bash tools/build-image.sh
+      - name: Compress for flashing
+        run: xz -T0 -2 gost-perimetr-os.img
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gost-perimetr-os
+          path: gost-perimetr-os.img.xz
+          retention-days: 90
